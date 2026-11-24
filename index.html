@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La macchinetta recensita</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f4f1ea;--fg:#1f2a26;--card:#fff;--acc:#0f6b57;--mut:#6b756f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a18;--fg:#eef2ef;--card:#1f2825;--acc:#4fc3a6;--mut:#9aa8a1}}
+:root[data-theme="dark"]{--bg:#141a18;--fg:#eef2ef;--card:#1f2825;--acc:#4fc3a6;--mut:#9aa8a1}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.4}
+header{text-align:center;padding:20px 16px 4px}
+h1{margin:0;font-size:1.5rem}
+p.sub{margin:6px 0 10px;color:var(--mut);font-size:.95rem}
+button.hint{background:var(--acc);color:#fff;border:0;border-radius:999px;padding:7px 16px;font-size:.88rem;cursor:pointer}
+.wrap{max-width:460px;margin:12px auto 32px;padding:0 12px}
+.m{position:relative;line-height:0;background:#f2f2f2;border-radius:12px;overflow:hidden}
+.m img{width:100%;height:auto;display:block}
+.d{position:absolute;transform:translate(-50%,-50%);border:0;border-radius:8px;background:transparent;cursor:pointer;padding:0}
+.d:hover,.d:focus-visible{background:rgba(255,255,255,.3);outline:2px solid #fff}
+.show .d.rev{background:rgba(224,164,0,.28);outline:2px dashed #e0a400}
+.cal .d{background:rgba(0,140,255,.18);outline:1px dashed #08f;font-size:9px;color:#000;line-height:1}
+#ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;z-index:20}
+#ov.on{display:flex}
+.card{background:var(--card);width:100%;max-width:480px;border-radius:18px 18px 0 0;padding:20px 20px calc(24px + env(safe-area-inset-bottom,0px));max-height:80vh;overflow:auto}
+.card h2{margin:2px 0 4px;font-size:1.3rem}
+.meta{color:var(--mut);font-size:.9rem}
+.stars{color:#e0a400;font-size:1.2rem;letter-spacing:2px;margin:8px 0}
+.empty{color:var(--mut);font-style:italic}
+.x{float:right;background:none;border:0;font-size:1.6rem;color:var(--fg);cursor:pointer;line-height:1}
+@media(min-width:600px){#ov{align-items:center}.card{border-radius:18px}}
+</style></head>
+<body>
+<header><h1>La macchinetta recensita</h1>
+<p class="sub">Tocca un prodotto sulla macchinetta per leggere la nostra recensione.</p>
+<button class="hint" id="tg">Evidenzia i prodotti recensiti</button></header>
+<div class="wrap"><div class="m" id="m"><img alt="Macchinetta distributrice" src="macchinetta.jpg"></div></div>
+<div id="ov"><div class="card" role="dialog" aria-modal="true"><button class="x" id="cl" aria-label="Chiudi">×</button><div class="meta" id="c"></div><h2 id="n"></h2><div class="meta" id="p"></div><div class="stars" id="s"></div><div id="t"></div></div></div>
+<script>
+/* =====================  1) RECENSIONI  =====================
+   Una riga per prodotto. La chiave è la posizione sulla foto:
+   lettera A + riga (1 = in alto … 5 = in basso) + colonna (1 = sinistra … 8 = destra).
+   Esempio: A23 = seconda riga, terza colonna.
+   n = nome, p = prezzo (facoltativo), r = voto da 1 a 5, t = testo.
+   Le posizioni non elencate mostrano “Recensione in arrivo”. */
+var REV = {
+  A11: {n:"Highlander (patatine)", p:"0,90", r:4, t:"Scrivi qui la tua recensione."},
+  A25: {n:"Nutella B-ready", p:"1,40", r:5, t:"Scrivi qui la tua recensione."},
+  A38: {n:"Oran Soda", r:3, t:"Scrivi qui la tua recensione."}
+};
+/* =====================  2) POSIZIONE DELLE AREE  =====================
+   Valori in % rispetto alla foto. Se cambi foto con la stessa inquadratura
+   non toccare nulla. Altrimenti apri la pagina con ?calibra in fondo all’indirizzo
+   (es. index.html?calibra) per vedere le aree e correggi questi numeri.
+   x0 = centro della 1ª colonna, dx = distanza tra colonne, ys = centro di ogni riga,
+   w/h = larghezza e altezza di ogni area, cols = colonne per riga. */
+var GRID = {x0:17.4, dx:7.09, cols:8, ys:[13.95,22.44,33.49,44.53,55.58], w:7, h:8};
+/* ===================================================== */
+var m=document.getElementById("m"),ov=document.getElementById("ov"),cal=location.search.indexOf("calibra")>=0;
+if(cal)m.classList.add("cal");
+function stars(r){return "★★★★★".slice(0,r)+"☆☆☆☆☆".slice(0,5-r)}
+GRID.ys.forEach(function(y,i){for(var j=0;j<GRID.cols;j++){var code="A"+(i+1)+(j+1),b=document.createElement("button");
+b.className="d"+(REV[code]?" rev":"");
+b.style.left=(GRID.x0+j*GRID.dx)+"%";b.style.top=y+"%";b.style.width=GRID.w+"%";b.style.height=GRID.h+"%";
+if(cal)b.textContent=code;
+b.setAttribute("aria-label","Posizione "+code+(REV[code]?": "+REV[code].n:""));
+(function(c){b.onclick=function(){openC(c)}})(code);m.appendChild(b)}});
+function openC(code){var d=REV[code];document.getElementById("c").textContent="Posizione "+code;
+document.getElementById("n").textContent=d?d.n:"Prodotto "+code;
+document.getElementById("p").textContent=d&&d.p?"€ "+d.p:"";
+document.getElementById("s").textContent=d?stars(d.r):"";
+var t=document.getElementById("t");t.className=d?"":"empty";t.textContent=d?d.t:"Recensione in arrivo.";ov.classList.add("on")}
+document.getElementById("cl").onclick=function(){ov.classList.remove("on")};
+ov.onclick=function(e){if(e.target===ov)ov.classList.remove("on")};
+document.onkeydown=function(e){if(e.key==="Escape")ov.classList.remove("on")};
+document.getElementById("tg").onclick=function(){m.classList.toggle("show")};
+</script></body></html>
